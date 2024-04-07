@@ -29,17 +29,27 @@ function poll(pollFn, interval = 100) {
   };
 }
 
-function getCeTaskUrl(sonarWorkingDir) {
+function overrideServer(original: string, override: string) {
+  const originalUrl = new URL(original);
+  const overrideUrl = new URL(override);
+  const url = new URL(`${overrideUrl.protocol}://${overrideUrl.host}${originalUrl.pathname}${originalUrl.search}${originalUrl.hash}`);
+  return url.toString();
+}
+
+function getCeTaskUrl(sonarWorkingDir, serverOverride) {
   const lines = fs.readFileSync(Path.join(sonarWorkingDir, 'report-task.txt'), 'utf-8').split('\n');
   for ( const i in lines ) {
     if ( lines[i].startsWith('ceTaskUrl=') ) {
-      return lines[i].substring('ceTaskUrl='.length);
+      const url = lines[i].substring('ceTaskUrl='.length);
+      if (serverOverride) {
+        return overrideServer(url, serverOverride);
+      }
     }
   }
   return null;
 }
 
-function getQualityGateUrl(sonarWorkingDir, ceTask) {
+function getQualityGateUrl(sonarWorkingDir, ceTask, serverOverride) {
   let analysisId = null;
   if (ceTask['analysisId']) {
     analysisId = ceTask['analysisId'];
@@ -58,13 +68,16 @@ function getQualityGateUrl(sonarWorkingDir, ceTask) {
     }
   }
   if ( serverUrl && projectKey ) {
-    return serverUrl + '/api/qualitygates/project_status?analysisId=' + analysisId;
+    const url = serverUrl + '/api/qualitygates/project_status?analysisId=' + analysisId;
+    if (serverOverride) {
+      return overrideServer(url, serverOverride);
+    }
   }
   return null;
 }
 
-export function pollQualityGate(auth, end, sonarWorkingDir, interval, resolve, reject) {
-  const url = getCeTaskUrl(sonarWorkingDir);
+export function pollQualityGate(auth, end, sonarWorkingDir, interval, serverOverride, resolve, reject) {
+  const url = getCeTaskUrl(sonarWorkingDir, serverOverride);
   if (!url) {
     reject('ceTaskUrl not found');
     return;
@@ -90,7 +103,7 @@ export function pollQualityGate(auth, end, sonarWorkingDir, interval, resolve, r
     if (ceTask['status'] === 'IN_PROGRESS' || ceTask['status'] === 'PENDING') {
       reject('Quality Gate Timeout');
     } else {
-      const qgurl = getQualityGateUrl(sonarWorkingDir, ceTask);
+      const qgurl = getQualityGateUrl(sonarWorkingDir, ceTask, serverOverride);
       if (!qgurl) {
         reject('qualityGate url not found');
       } else {
