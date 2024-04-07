@@ -3,6 +3,7 @@
 
   "qualitygateCommandDescription": "Waits for SonarQube quality gate to complete and returns result.",
   "serverFlagDescription": " URL of you SonarQube/CodeScan Cloud server. Defaults to CodeScan Cloud (https://app.codescan.io)",
+  "serverOverrideFlagDescription": "Optional URL of you SonarQube/CodeScan Cloud server that overrides any urls returned from SonarQube.",
   "organizationFlagDescription": "CodeScan Organization ID. Only required when connecting to CodeScan Cloud.",
   "projectKeyFlagDescription": "sonar.projectKey - the project key to create.",
   "tokenFlagDescription": "SonarQube token. The preferred method of authentication.",
