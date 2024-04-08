@@ -29,23 +29,36 @@ function poll(pollFn, interval = 100) {
   };
 }
 
-function overrideServer(original: string, override: string) {
-  const originalUrl = new URL(original);
-  const overrideUrl = new URL(override);
-  const url = new URL(`${overrideUrl.protocol}://${overrideUrl.host}${originalUrl.pathname}${originalUrl.search}${originalUrl.hash}`);
-  return url.toString();
+/**
+ * Rewrites the given url using the server url from the report file, and replacing the substring with the server override.
+ * @param url an original url
+ * @param serverUrlFromReport a url that matches sonar.core.serverBaseURL
+ * @param serverOverride a url that should replace the sonar.core.serverBaseURL
+ * @returns 
+ */
+function overrideServer(url: string, serverUrlFromReport: string, serverOverride: string) {
+  return url.replace(serverUrlFromReport, serverOverride);
 }
 
 function getCeTaskUrl(sonarWorkingDir, serverOverride) {
   const lines = fs.readFileSync(Path.join(sonarWorkingDir, 'report-task.txt'), 'utf-8').split('\n');
+  let ceTaskUrl = null;
+  let serverUrl = null;
   for ( const i in lines ) {
-    if ( lines[i].startsWith('ceTaskUrl=') ) {
-      const url = lines[i].substring('ceTaskUrl='.length);
-      if (serverOverride) {
-        return overrideServer(url, serverOverride);
-      }
+    if (lines[i].startsWith('serverUrl=')) {
+      serverUrl = lines[i].substring('serverUrl='.length);
+    } else if (lines[i].startsWith('ceTaskUrl=')) {
+      ceTaskUrl = lines[i].substring('ceTaskUrl='.length);
     }
   }
+
+  if (ceTaskUrl) {
+    if (serverOverride) {
+      return overrideServer(ceTaskUrl, serverUrl, serverOverride);
+    }
+    return ceTaskUrl;
+  }
+  
   return null;
 }
 
@@ -70,9 +83,11 @@ function getQualityGateUrl(sonarWorkingDir, ceTask, serverOverride) {
   if ( serverUrl && projectKey ) {
     const url = serverUrl + '/api/qualitygates/project_status?analysisId=' + analysisId;
     if (serverOverride) {
-      return overrideServer(url, serverOverride);
+      return overrideServer(url, serverUrl, serverOverride);
     }
+    return url;
   }
+
   return null;
 }
 
