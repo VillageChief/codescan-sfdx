@@ -36,7 +36,7 @@ export default class Run extends SfdxCommand {
   protected static flagsConfig = {
     // flag with a value (-n, --name=VALUE)
     server: flags.string({char: 's', description: messages.getMessage('serverFlagDescription')}),
-    serverOverride: flags.string({char: 's', description: messages.getMessage('serverOverrideFlagDescription')}),
+    serverOverride: flags.string({description: messages.getMessage('serverOverrideFlagDescription')}),
     organization: flags.string({char: 'o', description: messages.getMessage('organizationFlagDescription')}),
 
     projectkey: flags.string({char: 'k', description: messages.getMessage('projectKeyFlagDescription')}),
