@@ -36,6 +36,7 @@ export default class Run extends SfdxCommand {
   protected static flagsConfig = {
     // flag with a value (-n, --name=VALUE)
     server: flags.string({char: 's', description: messages.getMessage('serverFlagDescription')}),
+    serverOverride: flags.string({description: messages.getMessage('serverOverrideFlagDescription')}),
     organization: flags.string({char: 'o', description: messages.getMessage('organizationFlagDescription')}),
 
     projectkey: flags.string({char: 'k', description: messages.getMessage('projectKeyFlagDescription')}),
@@ -201,8 +202,9 @@ export default class Run extends SfdxCommand {
     const qgtimeout = _this.flags.qgtimeout ? parseInt(_this.flags.qgtimeout, 10) : 300;
     const end = new Date().getTime() + (qgtimeout * 1000);
     const auth = _this.flags.token ? _this.flags.token : (_this.flags.username && _this.flags.password ? {user: _this.flags.username, pass: _this.flags.password} : {});
+    const serverOverride = _this.flags.serverOverride;
     return new Promise((resolve, reject) => {
-      pollQualityGate(auth, end, sonarWorkingDir, 2000, resolve, reject);
+      pollQualityGate(auth, end, sonarWorkingDir, 2000, serverOverride, resolve, reject);
     });
   }
 
