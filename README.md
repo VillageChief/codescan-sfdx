@@ -66,7 +66,7 @@ OPTIONS
   
   $ sfdx codescan:run --token <token> --projectkey my-project-key --organization my-org-key -Dsonar.verbose=true
        -D can be used for passing any sonar-scanner definition
-       -X will be passed as a jvm arg
+       -J will be passed as a jvm arg
   
   $ sfdx codescan:run ... -X
        Verbose output
